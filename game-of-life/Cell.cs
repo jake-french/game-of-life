@@ -6,14 +6,20 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace game_of_life {
+    /// <summary>
+    /// Visual representations of individual life cells within a grid.
+    /// </summary>
     public class Cell : Button {
-        private static Dictionary<Coords, Cell> _cells;
+        private static Dictionary<Coords, Cell> _cells;     //dictionary Structure for finding cells via co-ordinates
         private static int maxX, maxY;
 
-        private LiveState state;
-        private Coords coords;
+        private LiveState state;        //current living state
+        private Coords coords;          //unique cell co-ordinates
         private bool isRunning;
 
+        /// <summary>
+        /// Cell constructor
+        /// </summary>
         public Cell(int x, int y) {
             coords.x = x;
             coords.y = y;
@@ -27,17 +33,23 @@ namespace game_of_life {
             isRunning = false;
             Dock = DockStyle.Fill;
             BackColor = System.Drawing.Color.GhostWhite;
-            Click += Clicked;
+            Click += Clicked;           //Add Click Event Handler
             state = LiveState.INTIAL;
             _cells.Add(coords, this);
         }
 
+        /// <summary>
+        /// Retrieves the current live state of the cell: intial, living, dead
+        /// </summary>
         public LiveState State {
             get {
                 return state;
             }
         }
 
+        /// <summary>
+        /// Retrieves the dictionary containing the co-ordinates for each cell
+        ///
         public static Dictionary<Coords, Cell> Cells {
             get {
                 if (_cells == null) {
@@ -47,6 +59,11 @@ namespace game_of_life {
             }
         }
 
+        /// <summary>
+        /// Click Event Handler
+        /// </summary>
+        /// <param name="sender">Object that sends the event.</param>
+        /// <param name="e">The event arguments.</param>
         private void Clicked(object sender, EventArgs e) {
             if (state == LiveState.INTIAL) {
                 state = LiveState.LIVING;
@@ -64,6 +81,10 @@ namespace game_of_life {
             //}
         }
 
+        /// <summary>
+        /// Changes the cell's living state.
+        /// </summary>
+        /// <param name="state">New value for the cell living state.</param>
         public void ChangeState(LiveState state) {
             //Prevent dead turning to unused
             if (this.state == LiveState.DEAD && state == LiveState.INTIAL) {
@@ -73,11 +94,17 @@ namespace game_of_life {
             ReColor();
         }
 
+        /// <summary>
+        /// Resets cell's living state to intial.
+        /// </summary>
         public void ResetCell() {
             state = LiveState.INTIAL;
             ReColor();
         }
 
+        /// <summary>
+        /// Colors cell based on current living state.
+        /// </summary>
         public void ReColor() {
             switch (state) {
                 case LiveState.INTIAL:
@@ -95,6 +122,10 @@ namespace game_of_life {
             }
         }
 
+        /// <summary>
+        /// Checks what the next living state of the cell will be based upon nearby cells.
+        /// </summary>
+        /// <returns>Returns integer flag representing next living state. 0 - intial, 1 - living, 2 - dead.</returns>
         public int CheckState() {
             int flag = 0;
             int liveNeighbours = 0;
@@ -182,6 +213,7 @@ namespace game_of_life {
                 }
             }
 
+            //Determine Flag
             System.Diagnostics.Debug.WriteLine("Cell (" + coords.x + "," + coords.y + ") Neighbours: " + liveNeighbours);
             if (liveNeighbours < 2 && state != LiveState.INTIAL) {
                 flag = 2;
@@ -203,23 +235,32 @@ namespace game_of_life {
             return flag;
         }
 
-        [Obsolete("Unused")]
+        [Obsolete("Unused. Feature Removed")]
         public static void SetRunning(bool flag) {
             foreach (KeyValuePair<Coords, Cell> pair in _cells) {
                 pair.Value.isRunning = flag;
             }
         }
 
+        /// <summary>
+        /// Empties the dictionary 
+        /// </summary>
         public static void ResetCells() {
             _cells = new Dictionary<Coords, Cell>();
         }
 
     }
 
+    /// <summary>
+    /// Simple struct to simplify storing two integer values within collections.
+    /// </summary>
     public struct Coords {
         public int x, y;
     }
 
+    /// <summary>
+    /// Enum storing the potential living states.
+    /// </summary>
     public enum LiveState {
         INTIAL,
         LIVING,

@@ -6,6 +6,9 @@ using System.Timers;
 using System.Windows.Forms;
 
 namespace game_of_life {
+    /// <summary>
+    /// Class handling the turn based simulation of life cells within a grid.
+    /// </summary>
     public class Simulation {
         private static Simulation _instance;
         private static bool _isRunning = false;
@@ -19,7 +22,9 @@ namespace game_of_life {
         private static List<Cell> willLive, willDie, other;
 
         #region Singleton
-        //Access the singleton object
+        /// <summary>
+        /// Access the Singleton Instance of Simulation
+        /// </summary>
         public static Simulation Instance {
             get {
                 if (_instance == null) {
@@ -33,31 +38,47 @@ namespace game_of_life {
         private Simulation() { }
         #endregion
 
+        /// <summary>
+        /// Returns the simulation is running value
+        /// </summary>
         public bool IsRunning {
             get {
                 return _isRunning;
             }
         }
 
+        /// <summary>
+        /// Returns the simulation is paused value
+        /// </summary>
         public bool IsPaused {
             get {
                 return _isPaused;
             }
         }
 
+        /// <summary>
+        /// Returns the number of seconds per turn
+        /// </summary>
         public int Seconds {
             get {
                 return _seconds;
             }
         }
 
+        /// <summary>
+        /// Sets the turn timer in seconds
+        /// </summary>
+        /// <param name="seconds">Number of seconds per turn.</param>
         public void SetTurnTime(int seconds) {
             _seconds = seconds;
             progressBar.Maximum = _seconds * (1000 / timerInterval);
 
         }
 
-        int cnt = 0;
+        //int cnt = 0;
+        /// <summary>
+        /// Starts or Resumes the simulation
+        /// </summary>
         public void Run() {
             if (!_isRunning) {
                 _isRunning = true;
@@ -69,6 +90,7 @@ namespace game_of_life {
                 timer.Tick += new EventHandler(TimerTick);
                 timer.Enabled = true;
 
+                /*
                 second = new System.Timers.Timer(1000);
                 second.Elapsed += delegate (object sender, ElapsedEventArgs e) {
                     cnt++;
@@ -76,6 +98,7 @@ namespace game_of_life {
                 };
                 second.AutoReset = true;
                 second.Enabled = true;
+                */
             } else {
                 if (_isPaused) {
                     _isPaused = false;
@@ -85,14 +108,20 @@ namespace game_of_life {
             }
         }
 
+        /// <summary>
+        /// Timer Tick Event Handler for turn timer
+        /// </summary>
+        /// <param name="sender">Object sending event.</param>
+        /// <param name="e">Event Arguments.</param>
         private void TimerTick(object sender, EventArgs e) {
             //Sleep
             if (progressBar.Value + 1 >= progressBar.Maximum) {
-                //progressBar.Invoke(new MethodInvoker(delegate () { progressBar.Value = progressBar.Maximum; }));
+                //Invokes method to prevent multi-thread access to progressBar
                 progressBar.Invoke(new MethodInvoker(delegate () { progressBar.Value = 0; }));
                 System.Diagnostics.Debug.WriteLine(_seconds + " passed!");
-                DoTurn();
+                DoTurn();       //Performs Turn Transition
             } else {
+                //Invokes method to prevent multi-thread access to progressBar
                 progressBar.Invoke(new MethodInvoker(delegate () { progressBar.Value++; }));
                 if (progressBar.Maximum - progressBar.Value <= 2) {
                     progressBar.Invoke(new MethodInvoker(delegate () { progressBar.Value = progressBar.Maximum; }));
@@ -100,6 +129,9 @@ namespace game_of_life {
             }
         }
 
+        /// <summary>
+        /// Pauses the Simulation
+        /// </summary>
         public void Pause() {
             if (_isRunning) {
                 if (!_isPaused) {
@@ -110,25 +142,32 @@ namespace game_of_life {
             }
         }
 
+        /// <summary>
+        /// Ends the Simulation
+        /// </summary>
         public void Stop() {
             if (_isRunning) {
                 _isRunning = false;
-                //Stop
+                //Stops timers
                 timer.Stop();
                 second.Stop();
                 timer.Dispose();
                 second.Dispose();
-                cnt = 0;
+                //cnt = 0;
 
                 progressBar.Value = 0;
             }
         }
 
+        /// <summary>
+        /// Tests every cell to determine potential living state changes
+        /// </summary>
         public void DoTurn() {
             willLive = new List<Cell>();
             willDie = new List<Cell>();
             other = new List<Cell>();
 
+            //Foreach record pair in cells dictionary
             foreach (KeyValuePair<Coords, Cell> pair in Cell.Cells) {
                 int flag = pair.Value.CheckState();
 
@@ -152,6 +191,10 @@ namespace game_of_life {
             }
         }
 
+        /// <summary>
+        /// Creates reference to progress bar for easy access
+        /// </summary>
+        /// <param name="bar">Progress bar reference.</param>
         public void AssignProgressBar(ProgressBar bar) {
             progressBar = bar;
         }

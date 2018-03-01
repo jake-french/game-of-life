@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace game_of_life {
+    /// <summary>
+    /// MainWindow GUI class displaying the cell grid and handling GUI events.
+    /// </summary>
     public partial class MainWindow : Form {
         //Variables
         private Simulation simulation;
@@ -16,12 +19,16 @@ namespace game_of_life {
 
         private bool validHCell, validVCell, validTurnTimer;
 
-        //Constructor
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public MainWindow() {
             InitializeComponent();
         }
 
-        //Methods
+        /// <summary>
+        /// Clears grid and redraws based off values of on-screen sliders.
+        /// </summary>
         private void CreateGrid() {
             if (reDrawGrid) {
                 reDrawGrid = false;
@@ -33,6 +40,7 @@ namespace game_of_life {
 
                     System.Diagnostics.Debug.WriteLine("Values: " + tempCols + " : " + tempRows);
 
+                    //Overwrite Slider count based of text value
                     if (TrBar_HCells.Value != tempCols) {
                         TrBar_HCells.Value = tempCols;
                     }
@@ -48,6 +56,7 @@ namespace game_of_life {
                 int cols = TrBar_HCells.Value;
                 int rows = TrBar_VCells.Value;
 
+                //Hide Grid during Redraw
                 Tbl_Grid.SuspendLayout();
                 Tbl_Grid.Visible = false;
                 TrBar_HCells.Enabled = false;
@@ -64,20 +73,21 @@ namespace game_of_life {
                 Cell.ResetCells();
 
                 //Populate Buttons
-                for (int x = 0; x < cols + 1; x++) {
-                    for (int y = 0; y < rows + 1; y++) {
+                for (int x = 0; x < cols + 1; x++) {        //foreach column
+                    for (int y = 0; y < rows + 1; y++) {        //foreach row
                         if (x != 0 && y != 0) {
+                            //Creates Cell button
                             Tbl_Grid.Controls.Add(new Cell(x, y), x, y);
                         } else {
                             if (x == 0 && y != 0) {
-                                //Y-Axis
+                                //Y-Axis Label
                                 Tbl_Grid.Controls.Add(new Label() {
                                     Font = new Font("Arial", 7, FontStyle.Bold),
                                     Text = "" + y,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 }, x, y);
                             } else if (y == 0 && x != 0) {
-                                //X-Axis
+                                //X-Axis Label
                                 Tbl_Grid.Controls.Add(new Label() {
                                     Font = new Font("Arial", 7, FontStyle.Bold),
                                     Text = "" + x,
@@ -92,6 +102,7 @@ namespace game_of_life {
                     }
                 }
 
+                //Displays grid upon drawing finished
                 Tbl_Grid.ResumeLayout();
                 Tbl_Grid.Visible = true;
                 TrBar_HCells.Enabled = true;
@@ -102,6 +113,10 @@ namespace game_of_life {
             }
         }
 
+        /// <summary>
+        /// Sets the control for player interaction of certain objects based of parameter value.
+        /// </summary>
+        /// <param name="enabled">Enabled state for objects.</param>
         private void EnableComponents(bool enabled) {
             TrBar_HCells.Enabled = enabled;
             TrBar_VCells.Enabled = enabled;
@@ -113,13 +128,18 @@ namespace game_of_life {
 
         }
 
-        //Events
+        /// <summary>
+        /// Window Load Event Handler
+        /// </summary>
+        /// <param name="sender">Object sending the event.</param>
+        /// <param name="e">Event Arguments.</param>
         private void MainWindow_Load(object sender, EventArgs e) {
             Tbl_Grid.RowCount = 0;
             Tbl_Grid.ColumnCount = 0;
 
             CreateGrid();
 
+            //Binds the text value to equal the value of Sliders.
             Txt_HCells.DataBindings.Add(new Binding("Text", TrBar_HCells, "Value"));
             Txt_VCells.DataBindings.Add(new Binding("Text", TrBar_VCells, "Value"));
             Txt_Timer.DataBindings.Add(new Binding("Text", TrBar_Timer, "Value"));
@@ -132,16 +152,22 @@ namespace game_of_life {
             simulation = Simulation.Instance;
             simulation.AssignProgressBar(PBar_TurnTimer);
 
+            //Add LostFocus Event Handlers
             Txt_HCells.LostFocus += CellCountValueChanged;
             Txt_VCells.LostFocus += CellCountValueChanged;
         }
 
+        /// <summary>
+        /// Start Button Event Handler
+        /// </summary>
+        /// <param name="sender">Object sending event.</param>
+        /// <param name="e">Event Arguments.</param>
         private void Btn_Start_Click(object sender, EventArgs e) {
             simulation.SetTurnTime(TrBar_Timer.Value);
             if (validHCell && validVCell && validTurnTimer && simulation.Seconds != -1) {
                 if (!simulation.IsRunning) {
                     simulation.SetTurnTime(TrBar_Timer.Value);
-                    simulation.Run();
+                    simulation.Run();       //Commences the Simulation
 
                     Btn_Start.Text = "Pause";
                     Btn_Stop.Enabled = true;
@@ -158,6 +184,7 @@ namespace game_of_life {
                     }
                 }
             } else {
+                //Validation
                 string errors = "";
                 if (!validHCell) errors += "Horizontal Cell Count invalid!\n";
                 if (!validVCell) errors += "Vertical Cell Count invalid!\n";
@@ -168,32 +195,54 @@ namespace game_of_life {
             }
         }
 
+        /// <summary>
+        /// Stop Button Event Handler
+        /// </summary>
+        /// <param name="sender">Object sending event.</param>
+        /// <param name="e">Event Arguments.</param>
         private void Btn_Stop_Click(object sender, EventArgs e) {
             if (simulation.IsRunning) {
-                simulation.Stop();
+                simulation.Stop();      //Stops Simulation
 
                 Btn_Start.Text = "Start";
                 Btn_Stop.Enabled = false;
                 EnableComponents(true);
+                //Foreach record pair in dictionary
                 foreach (KeyValuePair<Coords, Cell> pair in Cell.Cells) {
                     pair.Value.ResetCell();
                 }
             }
         }
-
+        
+        /// <summary>
+        /// Slider Mouse Event Handler
+        /// </summary>
+        /// <param name="sender">Object sending event.</param>
+        /// <param name="e">Mouse Event Arguments.</param>
         private void CellCountValueChanged(object sender, MouseEventArgs e) {
             CreateGrid();
         }
 
+        /// <summary>
+        /// Window Close Event Handler
+        /// </summary>
+        /// <param name="sender">Object sending event.</param>
+        /// <param name="e">Event Arguments.</param>
         private void MainWindow_FormClosed(object sender, FormClosedEventArgs e) {
             Application.Exit();
         }
 
+        /// <summary>
+        /// Slider TextBox Event Handler
+        /// </summary>
+        /// <param name="sender">Object sending event.</param>
+        /// <param name="e">Event Arguments.</param>
         private void CellCountValueChanged(object sender, EventArgs e) {
             try {
                 int cols = Int32.Parse(Txt_HCells.Text);
                 int rows = Int32.Parse(Txt_VCells.Text);
 
+                //Validates text values
                 if (cols < TrBar_HCells.Minimum) {
                     validHCell = false;
                     return;
@@ -209,6 +258,7 @@ namespace game_of_life {
                     return;
                 }
 
+                //If no validation errors, create grid
                 validHCell = true;
                 validVCell = true;
                 CreateGrid();
@@ -221,7 +271,11 @@ namespace game_of_life {
             }
         }
 
-        //Turn Timer Event
+        /// <summary>
+        /// Timer TextBox Event Handler
+        /// </summary>
+        /// <param name="sender">Object sending event.</param>
+        /// <param name="e">Event Arguments.</param>
         private void Txt_Timer_TextChanged(object sender, EventArgs e) {
             try {
                 int parseVal = Int32.Parse(Txt_Timer.Text);
